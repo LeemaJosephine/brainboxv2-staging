@@ -1,0 +1,69 @@
+@import "tailwindcss";
+
+:root {
+  font-family: "DM Sans", sans-serif;
+  line-height: 1.5;
+  font-weight: 400;
+  color: #ffffff;
+  background: linear-gradient(135deg, #0f172a 0%, #1e3a5f 50%, #0c1929 100%);
+  background-attachment: fixed;
+  font-synthesis: none;
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  min-width: 320px;
+  min-height: 100vh;
+  font-family: "DM Sans", sans-serif;
+  color: #ffffff;
+  background: linear-gradient(135deg, #0f172a 0%, #1e3a5f 50%, #0c1929 100%);
+  background-attachment: fixed;
+}
+
+#root {
+  min-height: 100vh;
+}
+
+a {
+  font-weight: 500;
+  color: #93c5fd;
+  text-decoration: inherit;
+}
+a:hover {
+  color: #bfdbfe;
+}
+
+h1, h2, h3 {
+  font-family: "DM Sans", sans-serif;
+  color: #ffffff;
+}
+
+button {
+  font-family: "DM Sans", sans-serif;
+}
+
+input, select, option {
+  font-family: "DM Sans", sans-serif;
+}
+
+/* Keep inputs and selects dark in dark theme (no white background on focus/autofill/dropdown) */
+input:-webkit-autofill,
+input:-webkit-autofill:hover,
+input:-webkit-autofill:focus,
+input:-webkit-autofill:active {
+  -webkit-text-fill-color: #fff;
+  -webkit-box-shadow: 0 0 0 1000px rgb(51 65 85 / 0.5) inset;
+  transition: background-color 5000s ease-in-out 0s;
+}
+
+select option {
+  background-color: #1e293b;
+  color: #ffffff;
+}
