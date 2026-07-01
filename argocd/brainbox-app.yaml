@@ -1,0 +1,21 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: brainbox
+  namespace: argocd
+spec:
+  project: default
+
+  source:
+    repoURL: https://github.com/LeemaJosephine/brainboxv2-staging.git
+    targetRevision: main
+    path: kubernetes
+
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: brainbox
+
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
