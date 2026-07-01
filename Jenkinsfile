@@ -6,17 +6,17 @@ pipeline {
     }
 
     environment {
-    SCANNER_HOME = tool('SonarScanner')
+        SCANNER_HOME = tool('SonarScanner')
 
-    AWS_REGION = 'ap-south-1'
-    AWS_ACCOUNT = '232939969354'
+        AWS_REGION = 'ap-south-1'
+        AWS_ACCOUNT = '232939969354'
 
-    FRONTEND_IMAGE = 'brainbox-frontend'
-    BACKEND_IMAGE = 'brainbox-backend'
+        FRONTEND_IMAGE = 'brainbox-frontend'
+        BACKEND_IMAGE = 'brainbox-backend'
 
-    FRONTEND_ECR = '232939969354.dkr.ecr.ap-south-1.amazonaws.com/dev-brainbox-frontend'
-    BACKEND_ECR = '232939969354.dkr.ecr.ap-south-1.amazonaws.com/dev-brainbox-backend'
- }
+        FRONTEND_ECR = '232939969354.dkr.ecr.ap-south-1.amazonaws.com/dev-brainbox-frontend'
+        BACKEND_ECR = '232939969354.dkr.ecr.ap-south-1.amazonaws.com/dev-brainbox-backend'
+    }
 
     stages {
 
@@ -79,7 +79,7 @@ pipeline {
         stage('Docker Build - Frontend') {
             steps {
                 sh '''
-                docker build -t brainbox-frontend:${BUILD_NUMBER} ./client
+                docker build -t ${FRONTEND_IMAGE}:${BUILD_NUMBER} ./client
                 '''
             }
         }
@@ -87,7 +87,7 @@ pipeline {
         stage('Docker Build - Backend') {
             steps {
                 sh '''
-                docker build -t brainbox-backend:${BUILD_NUMBER} ./server
+                docker build -t ${BACKEND_IMAGE}:${BUILD_NUMBER} ./server
                 '''
             }
         }
@@ -95,7 +95,7 @@ pipeline {
         stage('Trivy Scan - Frontend') {
             steps {
                 sh '''
-                trivy image --severity CRITICAL --no-progress brainbox-frontend:${BUILD_NUMBER}
+                trivy image --severity CRITICAL --no-progress ${FRONTEND_IMAGE}:${BUILD_NUMBER}
                 '''
             }
         }
@@ -103,42 +103,45 @@ pipeline {
         stage('Trivy Scan - Backend') {
             steps {
                 sh '''
-                trivy image --severity CRITICAL --no-progress brainbox-backend:${BUILD_NUMBER}
+                trivy image --severity CRITICAL --no-progress ${BACKEND_IMAGE}:${BUILD_NUMBER}
+                '''
+            }
+        }
+
+        stage('Login to Amazon ECR') {
+            steps {
+                withCredentials([[
+                    $class: 'AmazonWebServicesCredentialsBinding',
+                    credentialsId: 'aws-creds'
+                ]]) {
+                    sh '''
+                    aws ecr get-login-password --region $AWS_REGION | \
+                    docker login --username AWS --password-stdin \
+                    $AWS_ACCOUNT.dkr.ecr.$AWS_REGION.amazonaws.com
+                    '''
+                }
+            }
+        }
+
+        stage('Push Frontend Image') {
+            steps {
+                sh '''
+                docker tag ${FRONTEND_IMAGE}:${BUILD_NUMBER} ${FRONTEND_ECR}:${BUILD_NUMBER}
+                docker push ${FRONTEND_ECR}:${BUILD_NUMBER}
+                '''
+            }
+        }
+
+        stage('Push Backend Image') {
+            steps {
+                sh '''
+                docker tag ${BACKEND_IMAGE}:${BUILD_NUMBER} ${BACKEND_ECR}:${BUILD_NUMBER}
+                docker push ${BACKEND_ECR}:${BUILD_NUMBER}
                 '''
             }
         }
     }
-    stage('Login to Amazon ECR') {
-    steps {
-        withCredentials([[
-            $class: 'AmazonWebServicesCredentialsBinding',
-            credentialsId: 'aws-creds'
-        ]]) {
-            sh '''
-            aws ecr get-login-password --region $AWS_REGION | \
-            docker login --username AWS --password-stdin \
-            $AWS_ACCOUNT.dkr.ecr.$AWS_REGION.amazonaws.com
-            '''
-          }
-      }
-   }
 
-   stage('Push Frontend Image') {
-    steps {
-        sh '''
-        docker tag ${FRONTEND_IMAGE}:${BUILD_NUMBER} ${FRONTEND_ECR}:${BUILD_NUMBER}
-        docker push ${FRONTEND_ECR}:${BUILD_NUMBER}
-        '''
-      }
-   }
-   stage('Push Backend Image') {
-    steps {
-        sh '''
-        docker tag ${BACKEND_IMAGE}:${BUILD_NUMBER} ${BACKEND_ECR}:${BUILD_NUMBER}
-        docker push ${BACKEND_ECR}:${BUILD_NUMBER}
-        '''
-      }
-   }
     post {
         success {
             echo 'Pipeline completed successfully.'
