@@ -66,6 +66,38 @@ pipeline {
                 }
             }
         }
+
+        stage('Docker Build - Frontend') {
+            steps {
+                sh '''
+                docker build -t brainbox-frontend:${BUILD_NUMBER} ./client
+                '''
+            }
+        }
+
+        stage('Docker Build - Backend') {
+            steps {
+                sh '''
+                docker build -t brainbox-backend:${BUILD_NUMBER} ./server
+                '''
+            }
+        }
+
+        stage('Trivy Scan - Frontend') {
+            steps {
+                sh '''
+                trivy image --severity CRITICAL --exit-code 1 --no-progress brainbox-frontend:${BUILD_NUMBER}
+                '''
+            }
+        }
+
+        stage('Trivy Scan - Backend') {
+            steps {
+                sh '''
+                trivy image --severity CRITICAL --exit-code 1 --no-progress brainbox-backend:${BUILD_NUMBER}
+                '''
+            }
+        }
     }
 
     post {
