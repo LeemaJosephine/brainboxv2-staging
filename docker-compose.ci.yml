@@ -1,0 +1,15 @@
+services:
+
+  backend:
+    build:
+      context: ./server
+    container_name: brainbox-backend
+    ports:
+      - "5000:5000"
+
+  frontend:
+    build:
+      context: ./client
+    container_name: brainbox-frontend
+    ports:
+      - "80:80"

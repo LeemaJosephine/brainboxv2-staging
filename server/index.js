@@ -26,6 +26,13 @@ app.get("/", (req, res) => {
   res.send("Server is running");
 });
 
+app.get("/health", (req, res) => {
+    res.status(200).json({
+        status: "UP",
+        service: "brainbox-backend"
+    });
+});
+
 app.use("/api/auth", authRoutes);
 app.use("/api/team", teamRoutes);
 app.use("/api/reports", reportsRoutes);
