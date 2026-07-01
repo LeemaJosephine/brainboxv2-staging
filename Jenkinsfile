@@ -6,8 +6,17 @@ pipeline {
     }
 
     environment {
-        SCANNER_HOME = tool 'SonarScanner'
-    }
+    SCANNER_HOME = tool('SonarScanner')
+
+    AWS_REGION = 'ap-south-1'
+    AWS_ACCOUNT = '232939969354'
+
+    FRONTEND_IMAGE = 'brainbox-frontend'
+    BACKEND_IMAGE = 'brainbox-backend'
+
+    FRONTEND_ECR = '232939969354.dkr.ecr.ap-south-1.amazonaws.com/dev-brainbox-frontend'
+    BACKEND_ECR = '232939969354.dkr.ecr.ap-south-1.amazonaws.com/dev-brainbox-backend'
+ }
 
     stages {
 
@@ -99,7 +108,37 @@ pipeline {
             }
         }
     }
+    stage('Login to Amazon ECR') {
+    steps {
+        withCredentials([[
+            $class: 'AmazonWebServicesCredentialsBinding',
+            credentialsId: 'aws-creds'
+        ]]) {
+            sh '''
+            aws ecr get-login-password --region $AWS_REGION | \
+            docker login --username AWS --password-stdin \
+            $AWS_ACCOUNT.dkr.ecr.$AWS_REGION.amazonaws.com
+            '''
+          }
+      }
+   }
 
+   stage('Push Frontend Image') {
+    steps {
+        sh '''
+        docker tag ${FRONTEND_IMAGE}:${BUILD_NUMBER} ${FRONTEND_ECR}:${BUILD_NUMBER}
+        docker push ${FRONTEND_ECR}:${BUILD_NUMBER}
+        '''
+      }
+   }
+   stage('Push Backend Image') {
+    steps {
+        sh '''
+        docker tag ${BACKEND_IMAGE}:${BUILD_NUMBER} ${BACKEND_ECR}:${BUILD_NUMBER}
+        docker push ${BACKEND_ECR}:${BUILD_NUMBER}
+        '''
+      }
+   }
     post {
         success {
             echo 'Pipeline completed successfully.'
