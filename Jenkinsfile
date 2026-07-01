@@ -5,11 +5,33 @@ pipeline {
         nodejs "NodeJS-LTS"
     }
 
+    environment {
+        SCANNER_HOME = tool 'SonarScanner'
+    }
+
     stages {
 
         stage('Checkout') {
             steps {
                 checkout scm
+            }
+        }
+
+        stage('SonarQube Analysis') {
+            steps {
+                withSonarQubeEnv('SonarQube') {
+                    sh '''
+                    $SCANNER_HOME/bin/sonar-scanner
+                    '''
+                }
+            }
+        }
+
+        stage('Quality Gate') {
+            steps {
+                timeout(time: 5, unit: 'MINUTES') {
+                    waitForQualityGate abortPipeline: true
+                }
             }
         }
 
@@ -48,11 +70,11 @@ pipeline {
 
     post {
         success {
-            echo 'Build Successful!'
+            echo 'Pipeline completed successfully.'
         }
 
         failure {
-            echo 'Build Failed!'
+            echo 'Pipeline failed.'
         }
     }
 }
