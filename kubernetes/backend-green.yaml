@@ -1,0 +1,43 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: backend-green
+  namespace: brainbox
+
+spec:
+  replicas: 2
+
+  selector:
+    matchLabels:
+      app: backend
+      version: green
+
+  template:
+    metadata:
+      labels:
+        app: backend
+        version: green
+
+    spec:
+      containers:
+      - name: backend
+        image: 232939969354.dkr.ecr.ap-south-1.amazonaws.com/dev-brainbox-backend:18
+
+        ports:
+        - containerPort: 5000
+
+        envFrom:
+        - configMapRef:
+            name: backend-config
+        - secretRef:
+            name: backend-secret
+
+        livenessProbe:
+          httpGet:
+            path: /health
+            port: 5000
+
+        readinessProbe:
+          httpGet:
+            path: /health
+            port: 5000
